@@ -100,7 +100,8 @@ tools/icon-font.py       builds assets/fonts/CalcCraftIcons.ttf from Fluent Syst
   scientific notation (`5.e+0`, `0.e+0`). `Calculator::format_value` uses the engine's settings;
   the tests' `format_number` is the Standard mode's.
 - Pasted keys go straight to the engine, as Windows' `OnPaste` sends them: an error stops the
-  rest of the paste, a `0` never takes the pending sign, and the opening CE leaves F-E on.- A history line is completed with the text of the number last shown (`m_numberString`), not
+  rest of the paste, a `0` never takes the pending sign, and the opening CE leaves F-E on.
+- A history line is completed with the text of the number last shown (`m_numberString`), not
   with the value the command is about to put on the display: after `7 MS`, `4`, `x²`, `MR` the
   entry is `sqr(4)` = 16, not 7.
 - Tests use the `run("2+3*4=")` helper, a mini key language described above `press` in the
