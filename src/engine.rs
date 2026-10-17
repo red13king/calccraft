@@ -1801,8 +1801,11 @@ impl Calculator {
             return;
         }
         self.begin(Command::MemoryRecall);
-        self.current = value;
+        // Windows assigns the recalled value first, but logs a finished function with
+        // `m_numberString`, the text of the number that was on the display (`IDC_RECALL`),
+        // so the history keeps the function's result, not the recalled value.
         self.check_and_add_last_bin_op_to_history(true);
+        self.current = value;
         self.display_num();
     }
 
@@ -2727,6 +2730,30 @@ mod tests {
         assert_eq!(history(&calc), [("5 =".to_string(), "5".to_string())]);
         press(&mut calc, "c4r5");
         assert_eq!(history(&calc)[0], ("√(4)".to_string(), "2".to_string()));
+    }
+
+    #[test]
+    fn history_logs_a_finished_function_with_its_own_result_when_memory_is_recalled() {
+        // Source: microsoft/calculator, CalcManager/CEngine/scicomm.cpp, `IDC_RECALL` and
+        // `CheckAndAddLastBinOpToHistory`: the history line is completed with the text of the
+        // number on the display (`sqr(4)` = 16), not with the recalled value. The same keys on
+        // a build of Microsoft's CalcManager (d125246) leave `sqr( 4 )` = `16` in the history,
+        // in the Standard and the Scientific mode.
+        let mut calc = Calculator::default();
+        press(&mut calc, "7");
+        calc.execute(Command::MemoryStore);
+        press(&mut calc, "4s");
+        calc.execute(Command::MemoryRecall);
+        assert_eq!(calc.display(), "7");
+        assert_eq!(history(&calc), [("sqr(4)".to_string(), "16".to_string())]);
+
+        let mut calc = Calculator::with_precedence();
+        press_scientific(&mut calc, "7");
+        calc.execute(Command::MemoryStore);
+        press_scientific(&mut calc, "4 sqrt");
+        calc.execute(Command::MemoryRecall);
+        assert_eq!(calc.display(), "7");
+        assert_eq!(history(&calc), [("√(4)".to_string(), "2".to_string())]);
     }
 
     #[test]
